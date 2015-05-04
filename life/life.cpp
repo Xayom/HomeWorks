@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <time.h>
-#include <c++0x_warning.h>
 #include <random>
 
 using namespace std;
