@@ -1,298 +1,156 @@
 #include "settings.h"
 
-settings::param::param(const std::string & name, std::string value, settings *parent, bool emp)
-{
+settings::param::param(const string & name, std::string value, const settings *owner) {
     this->value = value;
     this->name = name;
-    this->parent = parent;
-    isBlank = emp;
-}
-
-settings::param::operator int() const
-{
-    if (isBlank){
-        throw EmptyProperty(name);
-    }
-    size_t *pos = new size_t;
-    int tmp = stoi(value, pos);
-    size_t *posd = new size_t;
-    double tmpd = stod(value, posd);
-    if (*pos != value.length() && *posd != value.length()){
-        throw std::invalid_argument(value);
-    }
-    return tmp;
+    this->owner = const_cast<settings* const>(owner);
 }
 
 settings::param::operator std::string() const
 {
-    if (isBlank)
-        throw EmptyProperty(name);
-    return value;
-}
-
-settings::param::operator double() const
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    size_t *pos = new size_t;
-    double tmp = stod(value, pos);
-    if (*pos != value.length())
-        throw std::invalid_argument(value);
-    return tmp;
+    return string(value);
 }
 
 settings::param::operator bool() const
 {
-    if (isBlank)
-        throw EmptyProperty(name);
-    bool result;
-    if (value == "true" || value == "1")
-        result = true;
-    else if (value == "false" || value == "0")
-        result = false;
-    else
-        throw std::invalid_argument(value);
-    return result;
+    return (value == "true");
 }
-
-settings::param &settings::param::operator=(const std::string &newValue)
+settings::param::operator int() const {
+    return stoi(value);
+}
+settings::param::operator double() const {
+    return stod(value);
+}
+settings::param & settings::param::operator=(char const * value) {
+    return this->operator=(std::string(value));
+}
+settings::param & settings::param::operator=(std::string const & value) {
+    //cout << "string: " << value << endl;
+    this->value = value;
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator=(int value)
 {
-    value = newValue;
-    isBlank = false;
-    parent->synch(name, value);
+    this->value = std::to_string(value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator=(bool value)
+{
+    this->value =  std::to_string(value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator=(double value) {
+    this->value =  std::to_string(value);
+    owner->set(this->name, this->value);
     return *this;
 }
 
-settings::param &settings::param::operator=(const char *newValue)
-{
-    value = std::string(newValue);
-    isBlank = false;
-    parent->synch(name, value);
+settings::param & settings::param::operator+=(std::string const & value) {
+    this->value += value;
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator+=(int value) {
+    this->value =  std::to_string(stoi(this->value) + value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator+=(double value) {
+    this->value =  std::to_string(stod(this->value) + value);
+    owner->set(this->name, this->value);
     return *this;
 }
 
-settings::param &settings::param::operator=(int newValue)
-{
-    value = std::to_string(newValue);
-    isBlank = false;
-    parent->synch(name, value);
+settings::param & settings::param::operator-=(int value) {
+    this->value =  std::to_string(stoi(this->value) - value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator-=(double value) {
+    this->value =  std::to_string(stod(this->value) - value);
+    owner->set(this->name, this->value);
     return *this;
 }
 
-settings::param &settings::param::operator=(bool newValue)
-{
-    value = newValue?"true":"false";
-    isBlank = false;
-    parent->synch(name, value);
+settings::param & settings::param::operator*=(int value) {
+    this->value =  std::to_string(stoi(this->value) * value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator*=(double value) {
+    this->value =  std::to_string(stod(this->value) * value);
+    owner->set(this->name, this->value);
     return *this;
 }
 
-settings::param &settings::param::operator=(double newValue)
-{
-    value = std::to_string(newValue);
-    isBlank = false;
-    parent->synch(name, value);
+settings::param & settings::param::operator/=(int value) {
+    this->value =  std::to_string(stoi(this->value) / value);
+    owner->set(this->name, this->value);
+    return *this;
+}
+settings::param & settings::param::operator/=(double value) {
+    this->value =  std::to_string(stod(this->value) / value);
+    owner->set(this->name, this->value);
     return *this;
 }
 
-settings::param &settings::param::operator+=(const std::string &newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value += newValue;
-    parent->synch(name, value);
+settings::param & settings::param::operator|=(bool value) {
+    this->value = (value ? "true" : this->value);
+    owner->set(this->name, this->value);
     return *this;
 }
-
-settings::param &settings::param::operator+=(const char * newValue)
-{
-
-    if (isBlank)
-        throw EmptyProperty(name);
-    value += std::string(newValue);
-    parent->synch(name, value);
+settings::param & settings::param::operator&=(bool value) {
+    this->value = (value ? this->value : "false");
+    owner->set(this->name, this->value);
     return *this;
 }
-
-settings::param &settings::param::operator+=(int newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator int() + newValue);
-    parent->synch(name, value);
-    return *this;
+bool settings::param::is_empty() const {
+    return this->value.empty();
 }
 
-settings::param &settings::param::operator+=(double newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator double() + newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator-=(int newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator int() - newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator*=(int newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator int() * newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator-=(double newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator double() - newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator*=(double newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator double() * newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator/=(int newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator int() / newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator/=(double newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator double() / newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator|=(bool newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator bool() || newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-settings::param &settings::param::operator&=(bool newValue)
-{
-    if (isBlank)
-        throw EmptyProperty(name);
-    value = std::to_string(this->operator bool() && newValue);
-    parent->synch(name, value);
-    return *this;
-}
-
-bool settings::param::is_empty() const
-{
-    return isBlank;
-}
-
-
-settings::settings(const std::string &filename)
-{
+settings::settings(const string & filename) {
     if (!std::ifstream(filename).good()){
         std::ofstream(filename);
     }
     this->filename = filename;
     reload();
 }
-
-const std::string &settings::get(const std::string &name, const std::string &def) const
-{
-    try {
-        return list.at(name);
-    }
-    catch (std::out_of_range) {
-        return def;
-    }
+string const & settings::get(std::string const & name, std::string const & def) const {
+    return (params.find(name) == params.end() ? def : params.find(name)->second);
 }
-
-void settings::set(const std::string &name, const std::string &value)
-{
-    list[name] = value;
-    synch();
+void settings::set(std::string const &name, std::string const &value) {
+    this->params[name] = value;
+    this->updateFile();
 }
-
-void settings::reset()
-{
+void settings::reset() {
     std::ofstream(filename, std::ofstream::trunc);
-    list.clear();
+    params.clear();
 }
-
-void settings::reload()
-{
-    list.clear();
-    std::ifstream in(filename);
-    std::string current;
-    while (std::getline(in, current)){
-        std::size_t pos = current.find("=\"");
-        std::string name = current.substr(0, pos);
-        std::size_t lpos = current.find_last_of("\"");
-        std::string value = current.substr(pos + 2, lpos - (pos + 2));
-        list[name] = value;
+void settings::reload() {
+    params.clear();
+    std::ifstream input(filename);
+    string name, value;
+    while (getline(input, name)) {
+        getline(input, value);
+        params[name] = value;
     }
+    input.close();
 }
-
-void settings::synch()
-{
-    std::ofstream out(filename);
-    for (auto it = list.begin(); it != list.end(); it++){
-        std::string val = it->second;
-        out << it->first << "=\"" << val << "\"" << std::endl;
-    }
-    out.close();
+const settings::param settings::operator[](std::string const &name) const {
+    return param(name, params.find(name)->second, this);
 }
-
-const settings::param settings::operator[](const std::string &name) const
-{
-    bool emp = false;
-    std::string result = "";
-    try {
-        result = list.at(name);
-    }
-    catch (std::out_of_range) {
-        emp = true;
-    }
-    return param(name, result, this, emp);
+settings::param settings::operator[](std::string const & name) {
+    return param(name, params.find(name)->second, this);
 }
-
-settings::param settings::operator[](const std::string &name)
+void settings::updateFile()
 {
-    bool emp = false;
-    std::string result = "";
-    try {
-        result = list.at(name);
+    std::ofstream output(filename);
+    for (auto item : params) {
+        output << item.first << endl;
+        output << item.second << endl;
     }
-    catch (std::out_of_range) {
-        emp = true;
-    }
-    return param(name, result, this, emp);
-}
-
-void settings::synch(std::string & name, std::string & value)
-{
-    list[name] = value;
-    synch();
+    output.close();
 }
