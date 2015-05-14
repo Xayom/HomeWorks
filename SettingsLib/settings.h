@@ -4,12 +4,11 @@
 #include <exception>
 #include <fstream>
 #include <stdexcept>
+#include <string>
 #include <iostream>
 #include <map>
-#include <string>
 
-class EmptyProperty  : public std::exception
-{
+class EmptyProperty  : public std::exception{
     public:
         EmptyProperty(const std::string & name)throw():error_message("Trying to cast empty property: " + name + "."){}
         virtual const char* what()const throw(){return error_message.c_str();}
@@ -18,9 +17,11 @@ class EmptyProperty  : public std::exception
         std::string error_message;
 };
 
-class settings {
+class settings
+{
     public:
-        class param {
+        class param
+        {
             friend class settings;
             private:
                 param(param const &);
@@ -246,4 +247,4 @@ private:
         std::string filename;
         std::map<std::string, std::string> list;
 };
-#endif // SETTINGS_SETTINGS_H
+#endif //SETTINGSLIB_SETTINGS_H

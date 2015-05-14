@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.1)
-project(SettingsLib)
+project(Settings)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
-add_library(settings SHARED settings.cpp settings.h)
+set(SOURCE_FILES settings.cpp)
+add_executable(Settings ${SOURCE_FILES})
+
+add_library(settings SHARED ${SOURCES} settings.cpp)
