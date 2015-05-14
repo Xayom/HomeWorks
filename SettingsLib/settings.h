@@ -8,7 +8,8 @@
 #include <map>
 #include <string>
 
-class EmptyProperty  : public std::exception{
+class EmptyProperty  : public std::exception
+{
     public:
         EmptyProperty(const std::string & name)throw():error_message("Trying to cast empty property: " + name + "."){}
         virtual const char* what()const throw(){return error_message.c_str();}

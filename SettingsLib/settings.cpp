@@ -56,7 +56,7 @@ settings::param::operator bool() const
     return result;
 }
 
-settings::param &settings::param::operator=(const string &newElement)
+settings::param &settings::param::operator=(const std::string &newElement)
 {
     value = newElement;
     isBlank = false;
@@ -96,7 +96,7 @@ settings::param &settings::param::operator=(double newElement)
     return *this;
 }
 
-settings::param &settings::param::operator+=(const string &newElement)
+settings::param &settings::param::operator+=(const std::string &newElement)
 {
     if (isBlank)
         throw (name);
@@ -245,13 +245,13 @@ void settings::reset()
 void settings::reload()
 {
     list.clear();
-    ifstream in(filename);
-    string current;
-    while (getline(in, current)){
-        size_t pos = current.find("=\"");
-        string name = current.substr(0, pos);
-        size_t lpos = current.find_last_of("\"");
-        string value = current.substr(pos + 2, lpos - (pos + 2));
+    std::ifstream in(filename);
+    std::string current;
+    while (std :: getline(in, current)){
+        std :: size_t pos = current.find("=\"");
+        std :: string name = current.substr(0, pos);
+        std :: size_t lpos = current.find_last_of("\"");
+        std :: string value = current.substr(pos + 2, lpos - (pos + 2));
         list[name] = value;
     }
 }
@@ -266,10 +266,10 @@ void settings::synch()
     out.close();
 }
 
-settings::param settings::operator[](const string &name)
+settings::param settings::operator[](const std::string &name)
 {
     bool empty = false;
-    string result = "";
+    std::string result = "";
     try
     {
         result = list.at(name);
@@ -280,16 +280,16 @@ settings::param settings::operator[](const string &name)
     return param(name, result, this, empty);
 }
 
-void settings::synch(string & name, string & value)
+void settings::synch(std::string & name, std::string & value)
 {
     list[name] = value;
     synch();
 }
 
-const settings::param settings::operator[](const string &name) const
+const settings::param settings::operator[](const std::string &name) const
 {
     bool empty = false;
-    string result = "";
+    std :: string result = "";
     try {
         result = list.at(name);
     }
