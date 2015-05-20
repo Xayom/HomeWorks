@@ -1,115 +1,89 @@
-#include <iostream>
-#include <vector>
 #include <cstdio>
 #include <cstdlib>
-#include <string>
+#include <cstring>
+#include <cmath>
+#include <ctype.h>
+int tok;
+double tokval;
 
-#define pb push_back
-
-using namespace std;
-
-vector <char> vec;
-vector <int> vec0;
-vector<int>::iterator pos;
-int q;
-
-int ch_num(char c) ///// check num
-{
-    return (c >= '0' && c <= '9');
+int next() {
+	for (;;) {
+		int c = getchar();
+		if (c == EOF || strchr("+%-*/()\n", c) != NULL) return tok = c;
+		if (isspace(c)) continue;
+		if (isdigit(c) || c == '.') {
+			ungetc(c, stdin);
+			scanf(" %lf", &tokval);
+			return tok = 'n';
+		}
+		fprintf(stderr, "Bad character: %c\n", c); exit(0);
+	}
 }
 
-
-int ch_sign(char c) ///// check sign
+void skip(char t)
 {
-    return (int(c) == 42) || (int(c) == 43) || (int(c) == 45) || (int(c) == 47) || (int(c) == 37);
+   // printf("%c %c\n", tok, t);
+    if(tok != t){
+        printf("Incorrect input");
+        exit(0);
+    }
+    next();
+}
+
+double expr();
+
+// numpar ::= number | '(' expr ')'
+int numpar() {
+	if (tok == 'n') { double x = tokval; skip('n'); return x; }
+	skip('('); double x = expr(); skip(')'); return x;
+}
+
+// term ::= numpar | term '*' numpar | term '/' numpar
+double term() {
+	int x = numpar();
+    //printf("%c/n", tok);
+	for (;;) {
+		if (tok == '*') {
+		    skip('*');
+            x *= numpar();
+        }
+		else
+            if (tok == '/') {
+                skip('/');
+                int k = numpar();
+                if (k == 0)
+                {
+                    printf("Division by zero");
+                    exit(0);
+                }
+                x /= k;
+            }
+		else if (tok == '%') { skip('%'); x %= numpar(); }
+		else
+             if (tok == '(')
+             {
+                printf("Incorrect input");
+                exit(0);
+             }
+            else
+                return x;
+	}
+}
+
+// expr ::= term | expr '+' term | expr '-' term
+double expr() {
+	double x = term();
+	for (;;) {
+		if (tok == '+') { skip('+'); x += term(); }
+		else if (tok == '-') { skip('-'); x -= term(); }
+		else return x;
+	}
 }
 
 int main()
 {
-    //freopen ("in.txt", "r", stdin);freopen ("out.txt", "w", stdout);
-    string s, t = "";
-    int p = 0;
-    getline(cin, s);
-    if (s == "")
-    {
-        cout << "Incorrect input" << endl;
-        return 0;
-    }
-    for (int i = 0; i < s.size(); i++)//delete all spaces
-        if (s[i] != ' ')
-            t += s[i];
-    if (ch_sign(t[0]) || ch_sign(t[t.size() - 1]))
-    {
-        cout << "Incorrect input" << endl;
-        return 0;
-    }
-    for (int i = 0; i < t.size(); i++)// save all signs in vector - vec, save of numbers in vector - vec0
-    {
-        if (ch_sign(t[i]))
-        {
-            vec0.pb (p);
-            vec.pb (t[i]);
-            if (ch_sign(t[i + 1]) || i + 1 == t.size())
-            {
-                cout << "Incorrect input" << endl;
-                return 0;
-            }
-            p = 0;
-        }
-        else
-            if (ch_num(t[i]))
-                p = p * 10 + t[i] - '0';
-            else
-            {
-                cout << "Incorrect input" << endl;
-                return 0;
-            }
-    }
-    vec0.pb (p);
-
-    for (int x = 0; x < vec.size(); x++)// do '/' and '*' and '%'
-    {
-        if (vec[x] == '*')
-        {
-            vec0[q] *= vec0[q + 1];
-            vector<int>::iterator pos = vec0.begin() + q + 1;
-            vec0.erase(pos);
-            q--;
-        }
-        else
-            if (vec[x] == '/')
-            {
-                if (vec0[q + 1] == 0)
-                {
-                    cout << "Division by zero" << endl;
-                    return 0;
-                }
-                vec0[q] /= vec0[q + 1];
-                vector<int>::iterator pos = vec0.begin() + q + 1;
-                vec0.erase(pos);
-                q--;
-            }
-        else
-        if (vec[x] == '%')
-        {
-            vec0[q] %= vec0[q + 1];
-            vector<int>::iterator pos = vec0.begin() + q + 1;
-            vec0.erase(pos);
-            q--;
-        }
-        q++;
-    }
-    int ans = vec0[0], l = 1;
-    for (int i = 0; i < vec.size(); i++)// do plus and minus
-    {
-        if (vec[i] != '-' && vec[i] != '+')
-            continue;
-        if (vec[i] == '+')
-            ans += vec0[l];
-        else
-            ans -= vec0[l];
-        l++;
-    }
-    cout << ans;//answer
-    return 0;
+	next();
+    if (tok == '\n') skip('\n');
+    printf("%.9g\n", expr());
+	return 0;
 }
