@@ -1,14 +1,11 @@
-#ifndef _SETTINGSLIB_SETTINGS_H_
-#define _SETTINGSLIB_SETTINGS_H_
-
-#include <string>
-#include <map>
-#include <fstream>
 #include <iostream>
-
-
+#include <string>
+#include <fstream>
+#include <cstring>
+#include <map>
+#include <cstdlib>
+#include <sstream>
 using namespace std;
-
 
 class settings
 {
@@ -112,5 +109,3 @@ class settings
         map<string, string>params;
         void updateFile();
 };
-
-#endif //_SETTINGSLIB_SETTINGS_H_
